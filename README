@@ -4,7 +4,8 @@ GitHub: https://github.com/yig/trimesh
 
 trimesh.py:
     A python half-edge data structure for a triangle mesh that can
-        - handle boundaries
+        - handle boundaries (the first outgoing halfedge at a vertex is always a boundary halfedge)
+          (and the last outgoing halfedge is always the opposite of a boundary halfedge))
         - save/load itself to/from OBJ format
         - save itself to OFF format
 
