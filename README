@@ -1,0 +1,34 @@
+Author: Yotam Gingold <yotam (strudel) yotamgingold.com>
+License: Public Domain.  (I, Yotam Gingold, the author, release this code into the public domain.)
+GitHub: https://github.com/yig/trimesh
+
+trimesh.py:
+    A python half-edge data structure for a triangle mesh that can
+        - handle boundaries
+        - save/load itself to/from OBJ format
+        - save itself to OFF format
+
+trimesh_viewer.py:
+    A very simple GLUT viewer for TriMesh objects.
+    Keys are:
+        - w: toggle edges (wireframe)
+        - r: reset the view
+        - c: captures current window backbuffer into "screen-capture-<title>-<number>.png"
+        - \: toggle fullscreen
+        - q: quit
+
+GLUTWindow.py:
+    A very simple class wrapping GLUT.
+    Keys are:
+        - c: captures current window backbuffer into "screen-capture-<title>-<number>.png"
+        - \: toggle fullscreen
+        - q: quit
+
+Known issues:
+    trimesh.TriMesh doesn't save or load normals.
+    trimesh.TriMesh doesn't load texture coordinates (though it does save them).
+    GLUTWindow.GLUTWindow screen capture is broken and needs to be changed to use PIL.
+
+Version History:
+    - 2012-01-12:
+        initial release
