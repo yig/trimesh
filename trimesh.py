@@ -91,18 +91,6 @@ class TriMesh( object ):
         if self.__face_normals is None: self.__face_normals = zerosf( ( len( self.faces ), 3 ) )
         if self.__face_areas is None: self.__face_areas = zerosf( len( self.faces ) )
         
-        if len( self.vs ) > 0 and len( self.faces ) > 0:
-            ## If we have this module, this is 3-4 times faster.
-            try:
-                import mesh_cpp
-                om = mesh_cpp.new_openmesh_from_data( self.vs, self.faces )
-                self.__face_normals = mesh_cpp.extract_openmesh_face_normals( om )
-                self.__face_areas = mesh_cpp.extract_openmesh_face_areas( om )
-                mesh_cpp.delete_openmesh( om )
-                return
-            except ImportError:
-                pass
-        
         ## We need subtraction between vertices.
         ## Convert vertices to arrays once here, or else we'd have to call asarray()
         ## ~6 times for each vertex.
@@ -112,7 +100,10 @@ class TriMesh( object ):
         ##         In particular, this violates the ability of someone to .append() or .extend()
         ##         self.vs.
         vs = asarray( self.vs )
+        fs = asarray( self.faces, dtype = int )
         
+        ## Slow:
+        '''
         for f in xrange( len( self.faces ) ):
             face = self.faces[f]
             n = cross(
@@ -122,6 +113,15 @@ class TriMesh( object ):
             nmag = mag( n )
             self.__face_normals[f] = (1./nmag) * n
             self.__face_areas[f] = .5 * nmag
+        '''
+        ## ~Slow
+        
+        ## Fast:
+        self.__face_normals = cross( vs[ fs[:,1] ] - vs[ fs[:,0] ], vs[ fs[:,2] ] - vs[ fs[:,1] ] )
+        self.__face_areas = sqrt((self.__face_normals**2).sum(axis=1))
+        self.__face_normals /= self.__face_areas[:,newaxis]
+        self.__face_areas *= 0.5
+        ## ~Fast
         
         assert len( self.faces ) == len( self.__face_normals )
         assert len( self.faces ) == len( self.__face_areas )
@@ -144,29 +144,43 @@ class TriMesh( object ):
     def update_vertex_normals( self ):
         if self.__vertex_normals is None: self.__vertex_normals = zerosf( ( len(self.vs), 3 ) )
         
-        ## If we have this module, this is so much faster than generating
-        ## the whole halfedge data structure in python.
-        try:
-            import fibermesh_cpp
-            om = fibermesh_cpp.new_openmesh_from_data( self.vs, self.faces )
-            self.__vertex_normals = fibermesh_cpp.extract_openmesh_vertex_normals( om )
-            fibermesh_cpp.delete_openmesh( om )
-            return
-        except ImportError:
-            pass
-        
+        ## Slow:
+        '''
         for vi in xrange( len( self.vs ) ):
             self.__vertex_normals[vi] = 0.
             
             for fi in self.vertex_face_neighbors( vi ):
-                ## This matches the OpenMesh's FAST vertex normals.
+                ## This matches the OpenMesh FAST vertex normals.
                 #self.__vertex_normals[vi] += self.face_normals[ fi ]
                 ## Area weighted
                 self.__vertex_normals[vi] += self.face_normals[ fi ] * self.face_areas[ fi ]
-            
+        
         ## Now normalize the normals
         #self.__vertex_normals[vi] *= 1./mag( self.__vertex_normals[vi] )
         self.__vertex_normals *= 1./sqrt( ( self.__vertex_normals**2 ).sum(1) ).reshape( (len(self.vs), 1) )
+        '''
+        ## ~Slow
+        
+        ## Fast:
+        fs = asarray( self.faces, dtype = int )
+        ## This matches the OpenMesh FAST vertex normals.
+        #fns = self.face_normals
+        ## Area weighted
+        fns = self.face_normals * self.face_areas[:,newaxis]
+        
+        self.__vertex_normals[:] = 0.
+        ## I wish this worked, but it doesn't do the right thing with aliasing
+        ## (when the same element appears multiple times in the slice).
+        #self.__vertex_normals[ fs[:,0] ] += fns
+        #self.__vertex_normals[ fs[:,1] ] += fns
+        #self.__vertex_normals[ fs[:,2] ] += fns
+        import itertools
+        for c in (0,1,2):
+            for i, n in itertools.izip( fs[:,c], fns ):
+                self.__vertex_normals[ i ] += n
+        
+        self.__vertex_normals /= sqrt( ( self.__vertex_normals**2 ).sum(axis=1) )[:,newaxis]
+        ## ~Fast
         
         assert len( self.vs ) == len( self.__vertex_normals )
     
@@ -180,6 +194,8 @@ class TriMesh( object ):
     def update_vertex_areas( self ):
         if self.__vertex_areas is None: self.__vertex_areas = zerosf( len(self.vs) )
         
+        ## Slow:
+        '''
         for vi in xrange( len( self.vs ) ):
             ## Try to compute proper area (if we have laplacian editing around)
             try:
@@ -199,6 +215,28 @@ class TriMesh( object ):
                     self.__vertex_areas[vi] += self.face_areas[ fi ]
                 
                 self.__vertex_areas[vi] *= 1./3.
+        '''
+        ## ~Slow
+        
+        ## Fast:
+        ## NOTE: This does not use laplacian_editing's so-called mixed area
+        ##       computation even if the module is present!
+        self.__vertex_areas[:] = 0.
+        
+        fs = asarray( self.faces, dtype = int )
+        fas = self.__face_areas
+        ## I wish this worked, but it doesn't do the right thing with aliasing
+        ## (when the same element appears multiple times in the slice).
+        #self.__vertex_areas[ fs[:,0] ] += fas
+        #self.__vertex_areas[ fs[:,1] ] += fas
+        #self.__vertex_areas[ fs[:,2] ] += fas
+        import itertools
+        for c in (0,1,2):
+            for i, area in itertools.izip( fs[:,c], fas ):
+                self.__vertex_areas[ i ] += area
+        
+        self.__vertex_areas /= 3.
+        ## ~Fast
         
         assert len( self.vs ) == len( self.__vertex_areas )
     

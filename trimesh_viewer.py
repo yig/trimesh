@@ -340,6 +340,8 @@ def view_mesh( mesh, title = None ):
     mesh.vs -= .5*( vsmax + vsmin )
     ## Divide by the corner
     mesh.vs *= 1./( ( vsmax - vsmin ).max() )
+    ## Positions have changed, but not topology:
+    mesh.positions_changed()
     
     if title is None: title = ''
     
@@ -363,7 +365,8 @@ def main():
         sys.exit(-1)
     
     mesh_path = sys.argv[1]
-    view_mesh( TriMesh.FromOBJ_FileName( mesh_path ), mesh_path )
+    pid = view_mesh( TriMesh.FromOBJ_FileName( mesh_path ), mesh_path )
+    print 'Background process id:', pid
 
 # call main() if the script is being run
 if __name__ == '__main__': main()
