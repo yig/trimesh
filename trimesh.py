@@ -197,7 +197,8 @@ class TriMesh( object ):
         ## Slow:
         '''
         for vi in xrange( len( self.vs ) ):
-            ## Try to compute proper area (if we have laplacian editing around)
+            ## Try to compute proper area (if we have laplacian editing around).
+            ## (This only matters for obtuse triangles.)
             try:
                 #raise ImportError
                 import laplacian_editing
@@ -221,6 +222,7 @@ class TriMesh( object ):
         ## Fast:
         ## NOTE: This does not use laplacian_editing's so-called mixed area
         ##       computation even if the module is present!
+        ##       (This only matters for obtuse triangles.)
         self.__vertex_areas[:] = 0.
         
         fs = asarray( self.faces, dtype = int )
