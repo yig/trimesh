@@ -136,7 +136,8 @@ class GLUTWindow( object ):
         print 'mouse passive motion at ( %d, %d )' % (x,y)
     
     def timerFunc( self ):
-        self.displayFunc()
+        print 'timer'
+        self.displayFuncWrapper()
     
     def startPeriodicTimer( self, delay ):
         self.stopPeriodicTimer()

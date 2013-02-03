@@ -215,21 +215,53 @@ def draw_mesh_edges( mesh ):
         glVertex3f( *mesh.vs[ edge[1] ] )
     glEnd()
 
+def draw_linestrips( linestrips ):
+    '''
+    Takes a sequence of line strips, where each line strip is a sequence of points,
+    and draws it, setting as little OpenGL state as possible.
+    '''
+    
+    for linestrip in linestrips:
+        glBegin( GL_LINE_STRIP )
+        
+        ## For Songrun
+        
+        glEnd()
+
+def draw_points( points ):
+    '''
+    Takes a sequence of points and draws it, setting as little OpenGL state as possible.
+    '''
+    
+    glBegin( GL_POINTS )
+    
+    ## For Songrun
+    
+    glEnd()
+
 class TriMeshWindow( GLUTWindow ):
     def __init__( self, **kwargs ):
         GLUTWindow.__init__( self )
         
         kwargs.setdefault( 'background_color', ( .3, .3, .3 ) )
         kwargs.setdefault( 'mesh', TriMesh() )
+        kwargs.setdefault( 'linestrips', [] )
+        kwargs.setdefault( 'points', [] )
         kwargs.setdefault( 'camera', Camera() )
         kwargs.setdefault( 'draw_faces', True )
         kwargs.setdefault( 'draw_edges', True )
+        kwargs.setdefault( 'draw_linestrips', True )
+        kwargs.setdefault( 'draw_points', True )
         
         self.background_color = kwargs[ 'background_color' ]
         self.mesh = kwargs[ 'mesh' ]
+        self.linestrips = kwargs[ 'linestrips' ]
+        self.points = kwargs[ 'points' ]
         self.camera = kwargs[ 'camera' ]
         self.draw_faces = kwargs[ 'draw_faces' ]
         self.draw_edges = kwargs[ 'draw_edges' ]
+        self.draw_linestrips = kwargs[ 'draw_linestrips' ]
+        self.draw_points = kwargs[ 'draw_points' ]
         
         ## I don't want dynamic binding here because
         ## subclasses' constructors haven't run yet
@@ -258,7 +290,7 @@ class TriMeshWindow( GLUTWindow ):
             
             glEnable( GL_COLOR_MATERIAL )
             glColor3ub( 200, 200, 255 )
-            draw_mesh_faces( self.mesh, self.draw_edges )
+            draw_mesh_faces( self.mesh, self.draw_edges or self.draw_linestrips or self.draw_points )
         
         if self.draw_edges:
             glDisable( GL_LIGHTING )
@@ -266,6 +298,14 @@ class TriMeshWindow( GLUTWindow ):
             glLineWidth( 1 )
             glColor3ub( 0,0,0 )
             draw_mesh_edges( self.mesh )
+        
+        if self.draw_linestrips:
+            glLineWidth( 3 )
+            draw_linestrips( self.linestrips )
+        
+        if self.draw_points:
+            glPointSize( 5 )
+            draw_points( self.points )
     
     def motionFunc( self, x, y ):
         ## Very simply map the camera onto +z half of the sphere x^2 + y^2 + z^2 = 1
@@ -358,6 +398,9 @@ def view_mesh( mesh, title = None ):
     #w2.positionWindow( w2pos )
     
     glutMainLoop()
+
+def view_lines( lines, title = None ):
+    raise NotImplementedError( 'Songrun, you can implement this.' )
 
 def main():
     if len( sys.argv ) != 2:
