@@ -909,14 +909,14 @@ class TriMesh( object ):
         
         ## Print vertices.
         for v in self.vs:
-            out.write( 'v %s %s %s\n' % tuple(v) )
+            out.write( 'v %r %r %r\n' % tuple(v) )
         out.write( '\n' )
         
         
         ## Print uv's if we have them.
         if hasattr( self, 'uvs' ):
             for uv in self.uvs:
-                out.write( 'vt %s %s\n' % tuple(uv) )
+                out.write( 'vt %r %r\n' % tuple(uv) )
             out.write( '\n' )
             
             ## Print faces with uv's.
@@ -945,7 +945,7 @@ class TriMesh( object ):
         out.write( '%d %d 0\n' % ( len( self.vs ), len( self.faces ) ) )
         
         for v in self.vs:
-            out.write( '%s %s %s\n' % tuple(v) )
+            out.write( '%r %r %r\n' % tuple(v) )
         for f in self.faces:
             out.write( '3 %s %s %s\n' % tuple(f) )
         
