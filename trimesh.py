@@ -302,7 +302,7 @@ class TriMesh( object ):
             
             ## If result is -1, then there's no such face in the mesh.
             ## The edge must be a boundary edge.
-            ## In this case, the reverse orientation edge must be have a face.
+            ## In this case, the reverse orientation edge must have a face.
             if -1 == result:
                 assert edge[::-1] in __directed_edge2face_index
             
