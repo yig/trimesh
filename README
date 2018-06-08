@@ -9,6 +9,10 @@ trimesh.py:
         - save/load itself to/from OBJ format
         - save itself to OFF format
 
+    Loading:
+        import trimesh
+        mesh = trimesh.TriMesh.FromOBJ_FileName( "cube.obj" )
+
 trimesh_viewer.py:
     A very simple GLUT viewer for TriMesh objects.
     Keys are:
@@ -33,3 +37,5 @@ Known issues:
 Version History:
     - 2012-01-12:
         initial release
+    - 2018-01-24:
+        supports Python 3.x
