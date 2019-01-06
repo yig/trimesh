@@ -896,7 +896,7 @@ class TriMesh( object ):
             print( 'Writing a large OBJ to:', fname )
         
         
-        out = file( fname, 'w' )
+        out = open( fname, 'w' )
         
         if header_comment is None:
             import sys
